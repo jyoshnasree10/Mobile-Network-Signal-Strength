@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalPro | Mobile Network Signal Strength Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: var(--secondary);
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--secondary);
+        }
+        
+        nav a.active {
+            color: var(--secondary);
+        }
+        
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--secondary);
+        }
+        
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Main Content Styles */
+        main {
+            min-height: calc(100vh - 140px);
+            padding: 2rem 0;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        /* Signal Visualization */
+        .signal-result {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .signal-strength {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+        
+        .signal-bars {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 2rem 0;
+            height: 120px;
+            align-items: flex-end;
+        }
+        
+        .signal-bar {
+            width: 30px;
+            background: #e0e0e0;
+            border-radius: 3px 3px 0 0;
+            transition: all 0.5s ease;
+        }
+        
+        .signal-bar.active {
+            background: linear-gradient(to top, var(--success), #2ecc71);
+        }
+        
+        .signal-quality {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .quality-item {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .quality-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            color: var(--primary);
+        }
+        
+        /* Provider Comparison */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .provider-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .provider-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .jio { background: #008cff; }
+        .airtel { background: #ed1c24; }
+        .idea { background: #004c93; }
+        .bsnl { background: #ff6a00; }
+        
+        .signal-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .signal-excellent { background: var(--success); }
+        .signal-good { background: #7bed9f; }
+        .signal-fair { background: var(--warning); }
+        .signal-poor { background: var(--danger); }
+        
+        .rating {
+            color: #f39c12;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+        
+        .feature-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-list i {
+            color: var(--success);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section a:hover {
+            color: var(--secondary);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #bdc3c7;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                gap: 1rem;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .signal-quality {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero {
+                padding: 2rem 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-satellite-dish"></i>
+                    <h1>SignalPro</h1>
+                </div>
+                <div class="mobile-menu">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+                        <li><a href="#" class="nav-link" data-page="predictor">Signal Predictor</a></li>
+                        <li><a href="#" class="nav-link" data-page="comparison">Provider Comparison</a></li>
+                        <li><a href="#" class="nav-link" data-page="about">About</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Home Page -->
+            <section id="home" class="page active">
+                <div class="hero">
+                    <h2>Predict Mobile Network Signal Strength</h2>
+                    <p>Get accurate signal strength predictions based on your location and mobile provider. Optimize your mobile experience with our advanced prediction technology.</p>
+                    <a href="#" class="btn nav-link" data-page="predictor">Check Signal Strength</a>
+                </div>
+                
+                <div class="card">
+                    <h3>How It Works</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                        <div style="text-align: center;">
+                            <i class="fas fa-map-marker-alt" style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4>Enter Your Location</h4>
+                            <p>Provide your address or area to analyze local signal conditions.</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <i class="fas fa-sim-card" style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4>Select Your Provider</h4>
+                            <p>Choose your mobile network provider from our comprehensive database.</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <i class="fas fa-chart-bar" style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4>Get Predictions</h4>
+                            <p>Receive detailed signal strength predictions and quality metrics.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Why Use SignalPro?</h3>
+                    <p>SignalPro uses advanced algorithms and real-world data to provide accurate signal strength predictions. Our system analyzes terrain, building density, historical signal data, and provider infrastructure to give you the most reliable predictions available.</p>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="#" class="btn nav-link" data-page="predictor" style="margin-right: 1rem;">Try Predictor</a>
+                        <a href="#" class="btn btn-outline nav-link" data-page="comparison">Compare Providers</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Signal Predictor Page -->
+            <section id="predictor" class="page">
+                <div class="card">
+                    <h3>Signal Strength Predictor</h3>
+                    <p>Enter your information below to get a signal strength prediction for your area.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                        <div>
+                            <div class="form-group">
+                                <label for="location">Location</label>
+                                <input type="text" id="location" class="form-control" placeholder="Enter your address or area">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sim-provider">Mobile Provider</label>
+                                <select id="sim-provider" class="form-control">
+                                    <option value="">Select your provider</option>
+                                    <option value="jio">Jio</option>
+                                    <option value="airtel">Airtel</option>
+                                    <option value="idea">Idea</option>
+                                    <option value="bsnl">BSNL</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="device-type">Device Type</label>
+                                <select id="device-type" class="form-control">
+                                    <option value="">Select your device type</option>
+                                    <option value="smartphone">Smartphone</option>
+                                    <option value="tablet">Tablet</option>
+                                    <option value="hotspot">Mobile Hotspot</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <button id="predict-btn" class="btn btn-block">Predict Signal Strength</button>
+                        </div>
+                        
+                        <div>
+                            <div id="signal-visualization" style="display: none;">
+                                <div class="signal-result">
+                                    <h4>Signal Strength Prediction</h4>
+                                    <div class="signal-strength" id="signal-text">Good</div>
+                                    
+                                    <div class="signal-bars">
+                                        <div class="signal-bar" id="bar1"></div>
+                                        <div class="signal-bar" id="bar2"></div>
+                                        <div class="signal-bar" id="bar3"></div>
+                                        <div class="signal-bar" id="bar4"></div>
+                                        <div class="signal-bar" id="bar5"></div>
+                                    </div>
+                                    
+                                    <div class="signal-quality">
+                                        <div class="quality-item">
+                                            <div>Download Speed</div>
+                                            <div class="quality-value" id="download-speed">-- Mbps</div>
+                                        </div>
+                                        <div class="quality-item">
+                                            <div>Upload Speed</div>
+                                            <div class="quality-value" id="upload-speed">-- Mbps</div>
+                                        </div>
+                                        <div class="quality-item">
+                                            <div>Latency</div>
+                                            <div class="quality-value" id="latency">-- ms</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="prediction-placeholder" style="text-align: center; padding: 3rem 1rem; color: var(--gray);">
+                                <i class="fas fa-satellite-dish" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <p>Enter your location and provider information to see signal strength predictions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Provider Comparison Page -->
+            <section id="comparison" class="page">
+                <div class="card">
+                    <h3>Indian Mobile Provider Comparison</h3>
+                    <p>Compare signal strength and network performance across Indian providers in your area.</p>
+                    
+                    <div class="form-group" style="max-width: 300px; margin-bottom: 2rem;">
+                        <label for="compare-location">Enter Your Location</label>
+                        <input type="text" id="compare-location" class="form-control" placeholder="Enter your city or area">
+                        <button id="compare-btn" class="btn" style="margin-top: 10px; width: 100%;">Compare Providers</button>
+                    </div>
+                    
+                    <div id="comparison-results">
+                        <div id="comparison-placeholder" style="text-align: center; padding: 2rem; color: var(--gray);">
+                            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Enter your location to see provider comparisons for your area.</p>
+                        </div>
+                        
+                        <div id="comparison-data" style="display: none;">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Signal Strength</th>
+                                        <th>Coverage</th>
+                                        <th>Avg. Download</th>
+                                        <th>Avg. Upload</th>
+                                        <th>User Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="providers-table-body">
+                                    <!-- Provider data will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                            
+                            <h4 style="margin-top: 2rem;">Key Features Comparison</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;" id="features-comparison">
+                                <!-- Feature cards will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Page -->
+            <section id="about" class="page">
+                <div class="card">
+                    <h3>About SignalPro</h3>
+                    <p>SignalPro is a comprehensive platform for predicting and analyzing mobile network signal strength. Our mission is to help users make informed decisions about their mobile connectivity by providing accurate, data-driven predictions.</p>
+                    
+                    <h4 style="margin-top: 2rem;">Our Technology</h4>
+                    <p>We use advanced machine learning algorithms combined with real-world signal data from thousands of sources to generate our predictions. Our system takes into account:</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Geographic terrain and elevation data</li>
+                        <li><i class="fas fa-check"></i> Building density and construction materials</li>
+                        <li><i class="fas fa-check"></i> Historical signal strength measurements</li>
+                        <li><i class="fas fa-check"></i> Mobile provider infrastructure locations</li>
+                        <li><i class="fas fa-check"></i> Weather conditions and seasonal variations</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>SignalPro</h3>
+                    <p>Advanced mobile network signal prediction and analysis.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" class="nav-link" data-page="home">Home</a></li>
+                        <li><a href="#" class="nav-link" data-page="predictor">Signal Predictor</a></li>
+                        <li><a href="#" class="nav-link" data-page="comparison">Provider Comparison</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Network Technology Guide</a></li>
+                        <li><a href="#">Signal Boosting Tips</a></li>
+                        <li><a href="#">Provider Reviews</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Data Usage</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2023 SignalPro. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation functionality
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetPage = this.getAttribute('data-page');
+                
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show target page
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(targetPage).classList.add('active');
+            });
+        });
+        
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu').addEventListener('click', function() {
+            document.querySelector('nav').classList.toggle('active');
+        });
+        
+        // Signal prediction functionality
+        document.getElementById('predict-btn').addEventListener('click', function() {
+            const provider = document.getElementById('sim-provider').value;
+            const location = document.getElementById('location').value;
+            const device = document.getElementById('device-type').value;
+            
+            if (!provider || !location || !device) {
+                alert('Please fill in all fields to get a prediction.');
+                return;
+            }
+            
+            // Show visualization and hide placeholder
+            document.getElementById('signal-visualization').style.display = 'block';
+            document.getElementById('prediction-placeholder').style.display = 'none';
+            
+            // Generate random signal strength (for demonstration)
+            const signalStrength = Math.floor(Math.random() * 100) + 1;
+            
+            // Update signal text and bars
+            const bars = document.querySelectorAll('.signal-bar');
+            bars.forEach(bar => bar.classList.remove('active'));
+            
+            if (signalStrength > 10) {
+                document.getElementById('bar1').classList.add('active');
+                document.getElementById('bar1').style.height = '20px';
+            }
+            if (signalStrength > 30) {
+                document.getElementById('bar2').classList.add('active');
+                document.getElementById('bar2').style.height = '40px';
+            }
+            if (signalStrength > 50) {
+                document.getElementById('bar3').classList.add('active');
+                document.getElementById('bar3').style.height = '60px';
+                document.getElementById('signal-text').textContent = 'Fair';
+                document.getElementById('signal-text').style.color = 'var(--warning)';
+            }
+            if (signalStrength > 70) {
+                document.getElementById('bar4').classList.add('active');
+                document.getElementById('bar4').style.height = '80px';
+                document.getElementById('signal-text').textContent = 'Good';
+                document.getElementById('signal-text').style.color = '#7bed9f';
+            }
+            if (signalStrength > 90) {
+                document.getElementById('bar5').classList.add('active');
+                document.getElementById('bar5').style.height = '100px';
+                document.getElementById('signal-text').textContent = 'Excellent';
+                document.getElementById('signal-text').style.color = 'var(--success)';
+            }
+            
+            if (signalStrength <= 30) {
+                document.getElementById('signal-text').textContent = 'Poor';
+                document.getElementById('signal-text').style.color = 'var(--danger)';
+            }
+            
+            // Update quality metrics based on signal strength
+            const downloadSpeed = (signalStrength / 100 * 100).toFixed(1);
+            const uploadSpeed = (signalStrength / 100 * 40).toFixed(1);
+            const latency = 100 - (signalStrength / 100 * 80);
+            
+            document.getElementById('download-speed').textContent = `${downloadSpeed} Mbps`;
+            document.getElementById('upload-speed').textContent = `${uploadSpeed} Mbps`;
+            document.getElementById('latency').textContent = `${latency.toFixed(0)} ms`;
+        });
+
+        // Provider Comparison Functionality
+        // Indian providers data
+        const providersData = [
+            {
+                id: "jio",
+                name: "Jio",
+                logoClass: "jio",
+                logoText: "JIO",
+                signalStrength: "excellent",
+                coverage: "99%",
+                downloadSpeed: "24.8 Mbps",
+                uploadSpeed: "6.7 Mbps",
+                rating: 4.5,
+                features: [
+                    "Widest 4G coverage in India",
+                    "Affordable data plans", 
+                    "Free voice calls",
+                    "Limited 5G availability"
+                ],
+                positiveFeatures: 3
+            },
+            {
+                id: "airtel",
+                name: "Airtel",
+                logoClass: "airtel",
+                logoText: "AIR",
+                signalStrength: "good",
+                coverage: "96%",
+                downloadSpeed: "18.5 Mbps",
+                uploadSpeed: "5.2 Mbps",
+                rating: 4.2,
+                features: [
+                    "Good urban and rural coverage",
+                    "Fast 4G speeds",
+                    "Good customer service",
+                    "Slightly higher pricing"
+                ],
+                positiveFeatures: 3
+            },
+            {
+                id: "idea",
+                name: "Idea",
+                logoClass: "idea",
+                logoText: "IDEA",
+                signalStrength: "fair",
+                coverage: "90%",
+                downloadSpeed: "12.3 Mbps",
+                uploadSpeed: "3.8 Mbps",
+                rating: 3.8,
+                features: [
+                    "Good value for money",
+                    "Wide 3G coverage",
+                    "Flexible plans",
+                    "Slower 4G speeds"
+                ],
+                positiveFeatures: 3
+            },
+            {
+                id: "bsnl",
+                name: "BSNL",
+                logoClass: "bsnl",
+                logoText: "BSNL",
+                signalStrength: "poor",
+                coverage: "85%",
+                downloadSpeed: "8.7 Mbps",
+                uploadSpeed: "2.1 Mbps",
+                rating: 3.2,
+                features: [
+                    "Government-owned provider",
+                    "Good rural coverage",
+                    "Most affordable plans",
+                    "Slowest network speeds"
+                ],
+                positiveFeatures: 3
+            }
+        ];
+
+        // Function to generate star rating
+        function generateStarRating(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '★';
+            }
+            
+            if (hasHalfStar) {
+                stars += '½';
+            }
+            
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '☆';
+            }
+            
+            return stars;
+        }
+
+        // Function to get signal strength text and class
+        function getSignalStrengthInfo(strength) {
+            switch(strength) {
+                case 'excellent':
+                    return { text: 'Excellent', class: 'signal-excellent' };
+                case 'good':
+                    return { text: 'Good', class: 'signal-good' };
+                case 'fair':
+                    return { text: 'Fair', class: 'signal-fair' };
+                case 'poor':
+                    return { text: 'Poor', class: 'signal-poor' };
+                default:
+                    return { text: 'Unknown', class: 'signal-fair' };
+            }
+        }
+
+        // Function to render provider comparison table
+        function renderProviderComparison() {
+            const tableBody = document.getElementById('providers-table-body');
+            tableBody.innerHTML = '';
+            
+            providersData.forEach(provider => {
+                const signalInfo = getSignalStrengthInfo(provider.signalStrength);
+                const starRating = generateStarRating(provider.rating);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="provider-header">
+                            <div class="provider-logo ${provider.logoClass}">${provider.logoText}</div>
+                            <span>${provider.name}</span>
+                        </div>
+                    </td>
+                    <td><span class="signal-indicator ${signalInfo.class}"></span> ${signalInfo.text}</td>
+                    <td>${provider.coverage}</td>
+                    <td>${provider.downloadSpeed}</td>
+                    <td>${provider.uploadSpeed}</td>
+                    <td><span class="rating">${starRating}</span> ${provider.rating}/5</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to render feature comparison cards
+        function renderFeatureComparison() {
+            const featuresContainer = document.getElementById('features-comparison');
+            featuresContainer.innerHTML = '';
+            
+            providersData.forEach(provider => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                let featuresHTML = '';
+                provider.features.forEach((feature, index) => {
+                    const isPositive = index < provider.positiveFeatures;
+                    featuresHTML += `
+                        <li>
+                            <i class="fas ${isPositive ? 'fa-check' : 'fa-times'}" style="color: ${isPositive ? 'var(--success)' : 'var(--danger)'};"></i> 
+                            ${feature}
+                        </li>
+                    `;
+                });
+                
+                card.innerHTML = `
+                    <h5>${provider.name}</h5>
+                    <ul class="feature-list">
+                        ${featuresHTML}
+                    </ul>
+                `;
+                featuresContainer.appendChild(card);
+            });
+        }
+
+        // Function to update comparison based on location
+        function updateComparisonForLocation(location) {
+            // In a real application, this would fetch data from an API
+            // For demo purposes, we'll just simulate some changes based on location
+            
+            if (location.toLowerCase().includes('rural') || location.toLowerCase().includes('village')) {
+                // Adjust data for rural areas
+                providersData.forEach(provider => {
+                    if (provider.id === 'jio') {
+                        provider.signalStrength = 'good';
+                        provider.coverage = '95%';
+                    } else if (provider.id === 'airtel') {
+                        provider.signalStrength = 'fair';
+                        provider.coverage = '88%';
+                    } else if (provider.id === 'idea') {
+                        provider.signalStrength = 'fair';
+                        provider.coverage = '85%';
+                    } else if (provider.id === 'bsnl') {
+                        provider.signalStrength = 'good';
+                        provider.coverage = '92%';
+                    }
+                });
+            } else if (location.toLowerCase().includes('urban') || location.toLowerCase().includes('city') || location.toLowerCase().includes('metro')) {
+                // Adjust data for urban areas
+                providersData.forEach(provider => {
+                    if (provider.id === 'jio') {
+                        provider.signalStrength = 'excellent';
+                        provider.coverage = '99%';
+                    } else if (provider.id === 'airtel') {
+                        provider.signalStrength = 'excellent';
+                        provider.coverage = '98%';
+                    } else if (provider.id === 'idea') {
+                        provider.signalStrength = 'good';
+                        provider.coverage = '94%';
+                    } else if (provider.id === 'bsnl') {
+                        provider.signalStrength = 'fair';
+                        provider.coverage = '88%';
+                    }
+                });
+            } else {
+                // Reset to default values
+                providersData.forEach(provider => {
+                    if (provider.id === 'jio') {
+                        provider.signalStrength = 'excellent';
+                        provider.coverage = '99%';
+                    } else if (provider.id === 'airtel') {
+                        provider.signalStrength = 'good';
+                        provider.coverage = '96%';
+                    } else if (provider.id === 'idea') {
+                        provider.signalStrength = 'fair';
+                        provider.coverage = '90%';
+                    } else if (provider.id === 'bsnl') {
+                        provider.signalStrength = 'poor';
+                        provider.coverage = '85%';
+                    }
+                });
+            }
+            
+            // Re-render the comparison
+            renderProviderComparison();
+            renderFeatureComparison();
+        }
+
+        // Initialize the comparison when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener for compare button
+            document.getElementById('compare-btn').addEventListener('click', function() {
+                const location = document.getElementById('compare-location').value;
+                if (location.trim() === '') {
+                    alert('Please enter a location to compare providers.');
+                    return;
+                }
+                
+                updateComparisonForLocation(location);
+                
+                // Show comparison data and hide placeholder
+                document.getElementById('comparison-data').style.display = 'block';
+                document.getElementById('comparison-placeholder').style.display = 'none';
+                
+                // Show a message about the location-based results
+                const resultsElement = document.getElementById('comparison-results');
+                const locationMessage = document.createElement('div');
+                locationMessage.className = 'card';
+                locationMessage.style.marginBottom = '1rem';
+                locationMessage.style.backgroundColor = '#e8f4fd';
+                locationMessage.innerHTML = `<p><strong>Location-based results for:</strong> ${location}</p>`;
+                
+                // Remove any existing location message
+                const existingMessage = resultsElement.querySelector('.card');
+                if (existingMessage && existingMessage.style.backgroundColor === 'rgb(232, 244, 253)') {
+                    existingMessage.remove();
+                }
+                
+                resultsElement.insertBefore(locationMessage, document.getElementById('comparison-data'));
+            });
+            
+            // Also trigger comparison when Enter is pressed in the location field
+            document.getElementById('compare-location').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('compare-btn').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
